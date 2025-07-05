@@ -1,0 +1,1510 @@
+---
+title: "Visualização de Dados em Farmacologia"
+subtitle: "Tipos de gráficos, como plotá-los e boas práticas para publicações"
+author: "Ma. Tamires Martins"
+date-format: long
+date: "2025-07-24"
+format: 
+  revealjs:
+    theme: [default, custom.scss]
+    header-logo-left: img/rladies.svg
+    header-logo-left-url: https://www.instagram.com/rladies.floripa/
+    header-logo-left-height: 30px
+    header-logo-right: img/camaradesbr.png
+    header-logo-right-url: https://www.instagram.com/camaradesbr/
+    header-logo-right-height: 25px
+    logo: img/labnec.png
+    pdf-separate-fragments: true
+    view-distance: 5
+    transition: fade
+    chalkboard: true
+    scrollable: false
+    highlight-style: gruvbox
+    menu: true
+    progress: true
+bibliography: referencias.bib
+
+fig-cap-location: top
+
+title-slide-attributes:
+    data-background-image: img/logo_cif.png
+    data-background-color: '#21908C'
+    data-background-size: 20%
+    data-background-position: top
+    data-background-opacity: "1"
+
+filters:
+  - reveal-logo
+---
+
+```{r setup, include=FALSE}
+# install.packages("ggplot2")
+# install.packages("dplyr")
+# install.packages("viridis")
+# remotes::install_github("clauswilke/colorblindr")
+
+# pacotes necessários
+library(ggplot2)
+library(plotly)
+library(tidyplots)
+library(dplyr)
+library(tibble)
+library(viridis)
+library(colorblindr)
+library(ggtext)
+library(scales)
+library(patchwork)
+
+# variaveis personalizadas
+color1 <- "#a5cbab"
+color2 <- "#daa641"
+color3 <- "#21908C"
+```
+
+# Objetivos da oficina
+
+1.  Entender o papel dos gráficos em farmacologia
+2.  Explorar tipos de gráficos: dose-resposta, respostas de grupos etc.
+3.  Revisar conceitos estatísticos básicos 
+4.  Aplicar boas práticas gráficas para publicação
+5.  Compreender a teoria das cores e acessibilidade
+6.  Praticar com pacotes em R: ggplot2 e tidyplots
+
+# Materiais
+
+-   [Slides <](https://tamimart.quarto.pub/dataviz_farmaco/)
+-   [Projeto no GitHub](https://github.com/tamimart/dataviz_farmaco)
+-   *Cheatsheets* impressos
+
+# Cronograma
+
+| Horário       | Atividade                           |
+|---------------|-------------------------------------|
+| 14h - 14h20   | Introdução à visualização           |
+| 14h20 - 14h50 | Tipos de gráficos em farmacologia   |
+| 14h50 - 15h15 | Boas práticas + teoria das cores    |
+| 15h15 - 15h45 | **Intervalo** |
+| 15h45 - 17h00 | Prática com `ggplot2` e `tidyplots` |
+
+# O que é visualização de dados?
+
+*Representação gráfica de informações e dados.*
+
+> "O objetivo científico de qualquer visualização é permitir que o leitor compreenda os dados e extraia informações **intuitivamente**, **eficientemente** e com **precisão**." - *Royal Statistical Society*
+
+{{< fa glasses >}} Comunicação clara de padrões\
+{{< fa right-left >}} Suporte à decisão e descoberta científica\
+{{< fa hand-sparkles >}} Evita interpretações erradas\
+
+::: side
+[Best Practices for Data Visualisation](https://royal-statistical-society.github.io/datavisguide/)
+:::
+
+::: {.slide-footer}
+@Krause2024
+:::
+
+## Ciência + Arte {.center background-image="img/Nightingale_mortality.jpg" background-opacity="0.8"}
+
+*Em 1859, Florence Nightingale publicou descobertas sobre a situação sanitária do exército britânico durante a guerra com a Rússia.*
+
+## O plano cartesiano
+
+Todo gráfico começa com eixos (X e Y) que criam um espaço.
+
+```{r}
+#| echo: false
+#| fig-align: center
+#| out-width: 60%
+
+ggplot() +
+  coord_cartesian(xlim = c(-5, 5), ylim = c(-5, 5)) +
+  geom_hline(yintercept = 0, color = "grey20") +
+  geom_vline(xintercept = 0, color = "grey20") +
+  geom_rect(aes(xmin = 0, xmax = 6, ymin = 0, ymax = 6),
+            fill = color2, alpha = 0.5) +
+  labs(x = "Eixo X", y = "Eixo Y") +
+  theme_void() +
+  annotate("text", x = 4.5, y = -0.5, label = "X", size = 6, fontface = "bold") +
+  annotate("text", x = -0.5, y = 4.5, label = "Y", size = 6, fontface = "bold") +
+  annotate("text", x = 2.5, y = 2.5, label = "Os resultados costumam ser\n apresentados aqui", size = 5)
+```
+
+## Poderia ser 3D
+```{r}
+#| fig-width: 9
+#| fig-height: 5
+
+data <- tibble(
+  variavel_1 = c(1:10),
+  variavel_2 = rep(c("2", "5"), 5),
+  variavel_3 = c(1:10),
+)
+
+plot_ly(data, x = ~variavel_1, y = ~variavel_2, z = ~variavel_3, intensity = ~variavel_3,
+  type = "mesh3d",
+  colors = c(color1, color3),
+  showscale = FALSE)
+```
+
+# As variáveis
+
+## Os eixos (ou dimensões) podem representar variáveis
+
+Em farmacologia, a **variável independente** (eixo X) é o que controlamos, para ver o efeito na **variável dependente** (eixo Y).
+
+```{r}
+#| echo: false
+#| fig-align: center
+#| out-width: 70%
+
+exemplo_dados <- data.frame(
+  dose = c(0.1, 0.3, 1, 3, 10, 30, 100),
+  resposta = c(2, 5, 20, 55, 80, 90, 92)
+  )
+
+ggplot2::ggplot(exemplo_dados, aes(x = dose, y = resposta)) +
+  geom_point(color = color1, size = 4, alpha = 0.8) +
+  scale_x_log10() + 
+  labs(
+    x = "Dose do fármaco (<b>variável independente</b>)",
+    y = "Resposta biológica \n(<b>variável dependente</b>)"
+  ) +
+  theme_classic(base_size = 20) +
+    theme(
+    axis.title.x = element_markdown(),
+    axis.title.y = element_markdown()
+  )
+```
+
+## Tipos de variáveis
+::: {.column width="20%"}
+
+:::
+
+::: {.column width="80%"}
+```{mermaid}
+%%| mermaid-format: png
+%%| fig-width: 7
+%%| fig-align: center
+---
+config:  
+    theme: default
+    themeVariables:
+      fontSize: 25
+      nodePadding: 5
+---
+
+flowchart TD
+    A[Variáveis] --> B(Qualitativas)
+    A --> C(Quantitativas)
+
+    B --> B1(Nominais)
+    B --> B2(Ordinais)
+
+    C --> C1(Discretas)
+    C --> C2(Contínuas)
+    
+    B1-->|ex: sexo| B1a[fêmea, <br>macho]
+    B2-->|ex: grau de dor| B2a[leve, <br>moderada, <br>intensa]
+    
+    C1-->|ex: número de crises| C1a[0, 1, 2...]
+    C2-->|ex: concentração plasmática| C2a[0.1, 0.3, 1...]
+    
+```
+:::
+
+## Organização das variáveis {.scrollable}
+
+Linhas são as observações e colunas são as variáveis.
+
+```{r .scrollable}
+#| echo: false
+#| fig-align: center
+
+df <- tibble(
+  individuo = 1:30,
+    grupo = c(rep("Controle", length.out = 10), 
+              rep("Tratamento A", length.out = 10), 
+              rep("Tratamento B", length.out = 10)),
+  dose = c(rep(NA, length.out = 10), rep(c(0.1, 3), each = 10)),
+  resposta1 = c(2, 5, 20, 55, 80, 90, 92, 
+               3, 6, 22, 60, 85, 95, 93,
+               4, 7, 25, 65, 88, 98, 95,
+               5, 8, 30, 70, 90, 99, 97,
+               6, 9),
+  resposta2 = c(89, 91, 80,
+               2, 5, 21, 59, 84, 94, 92,
+               3, 6, 24, 64, 87, 97, 94,
+               4, 7, 29, 69, 89, 98, 96,
+               5, 8, 34, 74, 91, NA),
+  resposta3 = c(88, 90, 91, 80,
+               1, 4, 20, 58, 83, 93, 91,
+               2, 5, 23, 63, 86, 96, 93,
+               3, 6, 28, 68, 88, 97, 95,
+               4, 7, 33, 73, 88)
+)
+
+#knitr::kable(df)
+print(df, n = 30) 
+```
+
+# Tipos de gráficos em farmacologia
+
+# Jogo dos erros! Estão preparados? 🕵🏽
+
+## Don't!
+
+::: {.r-stack}
+
+![](img/06.png){.fragment height="450"}
+
+![](img/02.png){.fragment height="450"}
+
+![](img/03.png){.fragment height="450"}
+
+![](img/05.png){.fragment height="450"}
+
+![](img/07.png){.fragment height="450"}
+
+![](img/04.png){.fragment height="450"}
+
+![](img/01.png){.fragment height="450"}
+
+![](img/08.png){.fragment height="450"}
+
+:::
+
+## Do!
+
+::: {.r-stack}
+
+
+![](img/15.png){.fragment height="200"}
+
+![](img/16.png){.fragment height="200"}
+
+![](img/14.png){.fragment height="200"}
+
+![](img/12.png){.fragment height="450"}
+
+![](img/13.png){.fragment height="450"}
+
+![](img/11.png){.fragment height="450"}
+:::
+
+## Curva dose-resposta
+
+Mostra a relação entre a dose (ou concentração) de um fármaco e a magnitude da sua resposta. 
+
+```{r}
+#| echo: false
+#| fig-align: center
+#| message: false
+
+set.seed(123) # reprodutibilidade
+conc <- 10^seq(-10, -2, length.out = 10)
+ec50 <- 1e-8
+emax <- 100
+resposta <- emax * conc / (ec50 + conc) + rnorm(10, 0, 2)
+
+p_cr <- ggplot(data.frame(conc, resposta), aes(x = conc, y = resposta)) +
+  geom_point(color = color1, size = 3) +
+  geom_smooth(method = "gam", formula = y ~ s(x), se = FALSE, color = color2) +
+
+  geom_hline(yintercept = emax, linetype = "dashed", color = color3) +
+  geom_vline(xintercept = ec50, linetype = "dashed", color = color3) +
+
+  annotate("text", x = 5e-10, y = emax + 5, label = "Emax", color = color3, fontface = "bold") +
+  annotate("text", x = ec50, y = 10, label = "EC50", color = color3, fontface = "bold", angle = 90, vjust = -0.5) +
+
+  scale_x_log10(
+    labels = trans_format("log10", math_format(10^.x)),
+    breaks = trans_breaks("log10", function(x) 10^x)
+  ) +
+  labs(
+    x = "Concentração do fármaco (M)",
+    y = "Resposta (%)"
+  ) +
+  theme_classic(base_size = 20)
+
+p_cr
+```
+
+Determina a **potência** ($EC_{50}$) e a **eficácia** ($E_{max}$).
+
+## Gráfico concentração-tempo
+
+Mostra como a concentração de um fármaco no plasma muda ao longo do tempo após a administração.
+
+```{r}
+#| echo: false
+#| fig-align: center
+
+set.seed(123)
+tempo <- seq(0, 7, by = 1)
+conc_tempo <- 100 * (exp(-0.1 * tempo) - exp(-1.5 * tempo)) + rnorm(length(tempo), 0, 2)
+conc_tempo[conc_tempo < 0] <- 0
+
+p_cp <- ggplot(data.frame(tempo, conc_tempo), aes(x = tempo, y = conc_tempo)) +
+  geom_line(color = color2, size = 1.2) +
+  geom_point(color = color2, size = 3) +
+  labs(title = NULL,
+       x = "Tempo (horas)",
+       y = "Concentração plasmática (ng/mL)") +
+  theme_classic(base_size = 20)
+
+p_cp
+```
+
+Usada em estudos de **farmacocinética** (absorção, distribuição, metabolismo e excreção).
+
+## Gráfico de sobrevivência
+
+```{r}
+#| echo: false
+#| fig-align: center
+
+mort <- tibble(
+  grupo = rep(c("Controle", "Tratamento A", "Tratamento B"), each = 4),
+  tempo_obito_horas = rep(c(1, 6, 12, 24), 3),
+  n_obitos = c(
+    0, 0, 0, 0,      # Controle
+    2, 2, 0, 0,      # Tratamento A
+    1, 2, 2, 1       # Tratamento B
+  ),
+  n_total = rep(10, 12)
+)
+
+mort_plot <- mort |>
+  arrange(grupo, tempo_obito_horas) |>
+  group_by(grupo) |>
+  mutate(
+    sobreviventes = first(n_total) - cumsum(n_obitos)
+  ) |>
+  ungroup()
+
+ggplot(mort_plot, aes(x = tempo_obito_horas, y = sobreviventes, color = grupo)) +
+  geom_point(size = 3) +
+  geom_step(size = 1.2) +
+  scale_color_manual(values = c("Controle" = color1, 
+                               "Tratamento A" = color2, 
+                               "Tratamento B" = color3)) +
+  scale_y_continuous(limits = c(0, 10)) +
+  labs(title = NULL,
+       x = "Tempo (horas)",
+       y = "Sobreviventes",
+       caption = "Fonte: Dados simulados a partir de Marinho et al. (não publicado)") +
+  theme_classic(base_size = 20) +
+  theme(plot.caption = element_text(size = 10, hjust = 1, color = "grey50"))
+
+```
+
+## Gráfico de barras 
+
+Ideal para **frequências** e distribuição da variável em **histograma**. 
+
+::: {.columns}
+
+::: {.column width="60%"}
+```{r}
+#| echo: false
+#| fig-align: center
+#| message: false
+#| fig-height: 3.5
+
+set.seed(123)
+
+dados_grupos <- data.frame(
+  grupo = rep(c("Controle", "Tratamento A", "Tratamento B"), each = 20),
+  valor = c(rnorm(20, 10, 2), rnorm(20, 15, 2.5), rnorm(20, 12, 2.2))
+)
+
+outliers <- data.frame(
+  grupo = rep("Tratamento B", 3),
+  valor = c(25, 27, 30)
+)
+
+dados_grupos <- dplyr::bind_rows(dados_grupos, outliers)
+p_cg <- ggplot(dados_grupos, aes(x = grupo, fill = grupo)) +
+  geom_bar(alpha = 0.7, width = 0.6) +
+  scale_fill_manual(values = c("Controle" = color2, "Tratamento A" = color1, "Tratamento B" = color3)) +
+  labs(title = NULL,
+       x = NULL,
+       y = "nº de indivíduos") +
+  theme_classic(base_size = 20) +
+  theme(legend.position = "none")
+
+p_cg
+
+ggplot(dados_grupos, aes(x = valor, fill = grupo)) +
+  geom_histogram(bins = 15, color = "white", alpha = 0.8) +
+  facet_wrap(~ grupo, scales = "free_y") +
+  scale_fill_manual(values = c("Controle" = color1, 
+                               "Tratamento A" = color2, 
+                               "Tratamento B" = color3)) +
+  labs(
+    x = "Valor da resposta",
+    y = "Frequência",
+    title = NULL
+  ) +
+  theme_classic(base_size = 20) +
+  theme(legend.position = "none")
+```
+:::
+
+::: {.column width="40%"}
+```{r}
+#| echo: false
+#| fig-align: center
+#| message: false
+#| fig-height: 5
+
+dados_resumo <- dados_grupos |> 
+  dplyr::group_by(grupo) |> 
+  dplyr::summarise(
+    media = mean(valor),
+    erro_padrao = sd(valor) / sqrt(n())
+  )
+
+ggplot(dados_resumo, aes(x = grupo, y = media, fill = grupo)) +
+  geom_bar(stat = "identity", alpha = 0.7, width=0.6) +
+  geom_errorbar(aes(ymin = media - erro_padrao, ymax = media + erro_padrao), width = 0.2) +
+  scale_fill_manual(values = c("Controle" = color1, "Tratamento A" = color2, "Tratamento B" = color3)) +
+  labs(title = NULL,
+       x = NULL,
+       y = "Média da Resposta") +
+  theme_classic(base_size = 20) +
+  theme(legend.position = "none") 
+```
+
+::: {.smaller style="font-size: 10%; color: #daa641;"}
+
+**Dica:** para dados contínuos, inclua barras de erro (como desvio padrão ~~ou erro padrão da média~~) para mostrar a variabilidade e incerteza dos dados. 
+
+:::
+
+:::
+
+:::
+
+## Boxplot para comparação entre médias/medianas de grupos grupos
+
+Compara a **distribuição** de uma variável entre diferentes grupos.
+
+Mostra a mediana, quartis e outliers, fornecendo um resumo robusto dos dados.
+
+```{r}
+#| echo: false
+#| fig-align: center
+
+ggplot(dados_grupos, aes(x = grupo, y = valor , fill = grupo)) +
+  geom_boxplot(alpha = 0.7, outlier.colour = 'red') +
+  scale_y_continuous(limits = c(0, 30)) +
+  scale_fill_manual(values = c("Controle" = color1, "Tratamento A" = color2, "Tratamento B" = color3)) +
+  labs(title = NULL,
+       x = NULL,
+       y = "Resposta") +
+  theme_classic(base_size = 20) +
+  theme(legend.position = "none") 
+```
+
+::: {.slide-footer}
+@Weissgerber2019
+:::
+
+# Boas práticas em gráficos científicos
+
+::: {.r-stack}
+
+::: {.r-stack-item}
+
+![](img/ggplot_ex2.png){.absolute top=0 left=0 height="200px" fig-align="center" alt="Exemplo de gráfico ggplot2 com boas práticas"}
+
+:::
+
+
+:::
+
+
+
+## Legibilidade e clareza
+
+### Fonte 
+
+#### Estilo 
+:::{.open-sans}
+Em imagens, **fontes sem serifa** são mais fáceis de entender.
+:::
+:::{.pt-serif-regular}
+As **fontes com serifa** adicionam complexidade desnecessária.
+:::
+
+## Legibilidade e clareza
+
+### Fonte 
+
+#### Tamanho
+
+Usar uma fonte de **pelo menos 12pt** para garantir legibilidade em publicações.
+
+Uma fonte muito grande pode roubar o <span style="font-size: 50px;">foco</span>!
+
+```{r}
+#| echo: false
+#| fig-align: center
+
+```
+
+## Legibilidade e clareza
+
+### Contraste 
+
+O contraste entre o texto e o fundo é crucial para a legibilidade.
+```{r}
+#| fig-align: center
+
+ggplot() +
+  coord_cartesian(xlim = c(-5, 5), ylim = c(-5, 5)) +
+  geom_rect(aes(xmin = 0, xmax = -5, ymin = 0, ymax = 5),
+            fill = "white", alpha = 1) +
+  geom_rect(aes(xmin = 0, xmax = 5, ymin = 0, ymax = 5),
+            fill = color1, alpha = 1) +
+  geom_rect(aes(xmin = 0, xmax = -5, ymin = 0, ymax = -5),
+            fill = color3, alpha = 1) +
+  geom_rect(aes(xmin = 0, xmax = 5, ymin = 0, ymax = -5),
+            fill = 'black', alpha = 1) +
+  labs(x = NULL, y = NULL) +
+  theme_void() +
+    annotate("text", x = - 2.5, y = 2.5, label = "Fundos claros com textos escuros", size = 5, color = color3) +
+  annotate("text", x = 2.5, y = 2.5, label = "Fundos claros com textos escuros", size = 5, color = "black") +
+    annotate("text", x = - 2.5, y = -2.5, label = "Fundos escuros com textos claros", size = 5, color = "white") +
+    annotate("text", x = 2.5, y = -2.5, label = "Fundos escuros com textos claros", size = 5, color = color1) 
+```
+
+## Legibilidade e clareza
+
+### Uso adequado de legendas
+:::{.columns}
+::: {.column width="60%"}
+![](https://ggplot2.tidyverse.org/reference/guides-10.png){height="250px" fig-align="center" fig-cap-location="bottom" alt="Exemplo de legendas no ggplot2"}
+
+:::
+
+::: {.column width="40%"}
+
+Devem ser usadas para **explicar o que** cada cor, forma ou tamanho **representa** no gráfico.
+
+:::
+:::
+**Evite redundâncias**: se o grupo já está identificado no eixo X ou Y, não precisa de legenda para a cor.
+
+## Hierarquia = direcionamento do foco
+
+```{r}
+#| fig-align: center
+
+data <- tibble(
+  x = 1:5,
+  y = 1:5,
+  grupo = c("Principal", "Principal", "Destaque", "Principal", "Principal")
+)
+
+ggplot(data, aes(x = x, y = y, fill = grupo)) +
+  geom_point(shape = 21, size = 6, color = "white") +
+  scale_fill_manual(
+    values = c("Principal" = "grey70", "Destaque" = color2)
+  ) +
+  labs(
+    title = "Você começa a ler aqui",
+    subtitle = "Depois complementa",
+    x = "Agora sabe as variáveis",
+    y = "Agora sabe as variáveis",
+    caption = "E aqui estão os detalhes e fontes"
+  ) +
+  annotate("text", x = 3, y = 3, label = "Esse ponto tem \n\n algo diferente...", size = 4) +
+  guides(fill = guide_legend("O que a cor significa?")) +
+  theme_classic(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 24),
+    plot.subtitle = element_text(size = 20),
+    axis.title = element_text(size = 16),
+    axis.text = element_text(size = 12),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12, color = "grey30"),
+    plot.caption = element_text(size = 10, hjust = 0, color = "grey50")
+  )
+```
+::: {.slide-footer}
+@Knaflic2015
+:::
+
+## Representação precisa dos dados
+
+### Evite distorções e mostre a variabilidade
+
+```{r}
+set.seed(123)
+dados <- data.frame(
+  grupo = rep(c("A", "B"), each = 20),
+  valor = c(rnorm(20, 100, 10), rnorm(20, 110, 10))
+)
+
+ggplot(dados, aes(x = grupo, y = valor, fill = grupo)) +
+  geom_boxplot(alpha = 1, outlier.color = "red") +
+  geom_jitter(width = 0.1, alpha = 0.5) +
+  scale_fill_manual(values = c("A" = color1, "B" = color2)) +
+  labs(
+    title = NULL,
+    x = "Grupo",
+    y = "Valor observado"
+  ) +
+  theme_classic(base_size = 15) +
+  theme(legend.position = "none")
+```
+::: {.slide-footer}
+@Weissgerber2019
+:::
+
+## Representação precisa dos dados
+
+::: {columns}
+
+::: {.column width="50%"}
+
+### Começe a escala no ZERO
+
+```{r}
+#| fig-height: 4.5
+#| fig-align: center
+
+dados <- tibble(
+  grupo = c(rep("A", 40), rep("B", 55)),
+)
+
+p1 <- ggplot(dados, aes(x = grupo, fill = grupo)) +
+  geom_bar(alpha = 0.7) +
+  coord_cartesian(ylim = c(0, 55)) +
+  scale_fill_manual(values = c("A" = color1, "B" = color2)) +
+  labs(y = "Frequência (escala completa)") +
+  theme_classic(base_size = 20) +
+  theme(legend.position = "none")
+
+# Com corte exagerado (exemplo do que NÃO fazer)
+p2 <- ggplot(dados, aes(x = grupo, fill = grupo)) +
+  geom_bar(alpha = 0.7) +
+  coord_cartesian(ylim = c(35, 55)) +
+  scale_fill_manual(values = c("A" = color1, "B" = color2)) +
+  labs(y = "Frequência (escala cortada)") +
+  theme_classic(base_size = 20) +
+  theme(legend.position = "none")
+
+p1
+p2
+```
+
+:::
+
+::: {.column width="50%"}
+
+### Escala linear "aproxima" valores
+
+```{r}
+#| fig-height: 4.5
+set.seed(123)
+conc <- 10^seq(-10, -4, length.out = 10)
+ec50 <- 1e-8
+emax <- 100
+resposta <- emax * conc / (ec50 + conc) + rnorm(10, 0, 5)
+
+ggplot(data.frame(conc, resposta), aes(x = conc, y = resposta)) +
+  geom_point(color = color1, size = 3) +
+  geom_smooth(method = "gam", formula = y ~ x, se = FALSE, color = color2) +
+  labs(
+    x = "Concentração (M) [Escala linear]",
+    y = "Resposta (%)"
+  ) +
+  theme_classic(base_size = 20)
+
+ggplot(data.frame(conc, resposta), aes(x = conc, y = resposta)) +
+  geom_point(color = color1, size = 3) +
+  geom_smooth(method = "gam", formula = y ~ s(x), se = FALSE, color = color2) +
+  scale_x_log10(
+    labels = scales::trans_format("log10", scales::math_format(10^.x)),
+    breaks = scales::trans_breaks("log10", function(x) 10^x)
+  ) +
+  labs(
+    x = "Concentração (M) [Escala log]",
+    y = "Resposta (%)"
+  ) +
+  theme_classic(base_size = 20)
+
+```
+
+:::
+
+:::
+
+## Padrões editoriais
+
+### Resolução
+
+::: {.columns}
+::: {.column width="50%"}
+Imagens devem ter **alta resolução**, as revistas costumam exigeir pelo menos **300 DPI** (pontos por polegada).
+
+Se aumentamos o tamanho de uma imagem sem aumentar a quantidade de pixels, sua resolução em DPI diminui.
+
+:::
+
+::: {.column width="50%"}
+
+
+![](img/favicon.png){height="2cm" fig-align="center" alt="Exemplo de resolução de imagem com dpi baixo e alto"}
+
+![](img/favicon.png){height="8cm" fig-align="center" alt="Exemplo de resolução de imagem com dpi baixo e alto"}
+:::
+:::
+
+## Padrões editoriais
+
+### Formato
+Figuras devem ser salvas em formatos vetoriais (como SVG ou PDF) ou de alta qualidade (como PNG ou TIFF).
+
+::: {style="color: #daa641;"}
+Leia as especificações da revista!
+:::
+
+## Padrões editoriais
+
+### Painel
+
+As figuras podem ter painéis combinados em uma imagem. Uma prática comum é usar letras (A, B, C...) para identificar cada painel.
+
+Contar uma história completa em uma figura.
+
+```{r}
+#| fig-align: center
+#| fig-width: 15
+p_cr <- p_cr + labs(title = "A")
+p_cp <- p_cp + labs(title = "B")
+p_cg <- p_cg + labs(title = "C")
+
+ p_cp + p_cr + p_cg + plot_layout(ncol = 3, nrow = 1, tag_level = "new", widths = c(4, 4, 6))
+```
+
+
+# Cores
+
+## Cor é informação
+
+![](img/teoria_das_cores.gif){height="250px" fig-align="center" style="margin: 0px;" alt="Teoria das cores"}
+
+A cor deve **codificar dados** e guiar a interpretação do leitor de forma clara e acessível.
+
+::: aside
+![](img/color_var.png){height="175px" fig-align="center" style="margin: 0px;" alt="Modificações das cores"}
+
+@Strachnyi2023
+:::
+
+## Roda de cores e paletas
+
+::: {.column layout="[[-1], [1], [-1]]" width="50%" style="justify-content: center;"}
+
+![](img/roda_cores.png){height="150px" fig-align="center" style="margin: 10px;" alt="Roda de cores"}
+:::
+
+::: {.column width="50%"}
+```{r}
+#| fig-height: 1.5
+#| fig-cap: "Complementares"
+
+ggplot() +
+  coord_cartesian(xlim = c(-5, 5), ylim = c(0, 5)) +
+  geom_rect(aes(xmin = 0, xmax = -5, ymin = 0, ymax = 5),
+            fill = '#d1ea2c', alpha = 1) +
+  geom_rect(aes(xmin = 0, xmax = 5, ymin = 0, ymax = 5),
+            fill = "#a7194b", alpha = 1) +
+  labs(x = NULL, y = NULL) +
+  theme_void() 
+
+```
+
+```{r}
+#| fig-height: 1.5
+#| fig-cap: "Análogas"
+ 
+ggplot() +
+  coord_cartesian(xlim = c(-4, 5), ylim = c(0, 5)) +
+  geom_rect(aes(xmin = -1, xmax = -4, ymin = 0, ymax = 5),
+            fill = '#66b033', alpha = 1) +
+  geom_rect(aes(xmin = -1, xmax = 2, ymin = 0, ymax = 5),
+            fill = '#d1ea2c', alpha = 1) +
+  geom_rect(aes(xmin = 2, xmax = 5, ymin = 0, ymax = 5),
+            fill = '#fffe34', alpha = 1) +
+  labs(x = NULL, y = NULL) +
+  theme_void() 
+```
+
+```{r}
+#| fig-height: 1.5
+#| fig-cap: "Triádicas"
+
+ggplot() +
+  coord_cartesian(xlim = c(-4, 5), ylim = c(0, 5)) +
+  geom_rect(aes(xmin = -1, xmax = -4, ymin = 0, ymax = 5),
+            fill = '#d1ea2c', alpha = 1) +
+  geom_rect(aes(xmin = -1, xmax = 2, ymin = 0, ymax = 5),
+            fill = '#3d01a4', alpha = 1) +
+  geom_rect(aes(xmin = 2, xmax = 5, ymin = 0, ymax = 5),
+            fill = '#fd5308', alpha = 1) +
+  labs(x = NULL, y = NULL) +
+  theme_void() 
+```
+
+:::
+
+## Paleta de acordo com o tipo da variável
+::: {.column width="20%"}
+
+:::
+
+::: {.column width="80%"}
+```{mermaid}
+%%| mermaid-format: png
+%%| fig-width: 5
+%%| fig-align: center
+---
+config:  
+    theme: default
+    themeVariables:
+      fontSize: 25
+      nodePadding: 5
+---
+
+flowchart TD
+    A[Variáveis] --> B(Qualitativas)
+    A --> C(Quantitativas)
+
+    B --> B1(Nominais)
+    B --> B2(Ordinais)
+
+    C --> C1(Discretas)
+    C --> C2(Contínuas)
+    
+    B1-->|ex: sexo| B1a[fêmea, <br>macho]
+    B2-->|ex: grau de dor| B2a[leve, <br>moderada, <br>intensa]
+    
+    C1-->|ex: número de crises| C1a[0, 1, 2...]
+    C2-->|ex: concentração plasmática| C2a[0.1, 0.3, 1...]
+    
+```
+:::
+
+O pacote `RColorBrewer` oferece paletas de cores pré-definidas dos três tipos: categóricas, sequenciais e divergentes.
+
+```r
+RColorBrewer::display.brewer.all()
+paleta <- RColorBrewer::brewer.pal(n = 5, name = "Set3")
+```
+
+## Paletas categóricas: quali (nominal)
+
+**Uso:** Para diferenciar grupos sem ordem intrínseca.
+
+**Objetivo:** As cores devem ser o mais distinguíveis possível.
+
+```{r}
+#| fig-height: 4
+
+paleta_cat <- RColorBrewer::brewer.pal(n = 5, name = "Set3")
+
+p_cat1 <- ggplot() +
+  coord_cartesian(xlim = c(-5, 5), ylim = c(0, 3)) +
+  geom_rect(aes(xmin = -3, xmax = -5, ymin = 0, ymax = 3),
+            fill = paleta_cat[1], alpha = 1) +
+  geom_rect(aes(xmin = -1, xmax = -3, ymin = 0, ymax = 3),
+            fill = paleta_cat[2], alpha = 1) +
+  geom_rect(aes(xmin = -1, xmax = 1, ymin = 0, ymax = 3),
+            fill = paleta_cat[3], alpha = 1) +
+  geom_rect(aes(xmin = 1, xmax = 3, ymin = 0, ymax = 3),
+            fill = paleta_cat[4], alpha = 1) +
+    geom_rect(aes(xmin = 3, xmax = 5, ymin = 0, ymax = 3),
+            fill = paleta_cat[5], alpha = 1) +
+  labs(x = NULL, y = NULL) +
+  theme_void() 
+
+df_cat <- data.frame(
+  classe = c("Ansiolíticos", "Antidepressivos", "Antipsicóticos", "Estimulantes", "Hipnóticos"),
+  n = c(12, 18, 7, 9, 6)
+) |> 
+  mutate(percent = n / sum(n) * 100,
+         label = paste0(classe, " (", round(percent), "%)"))
+
+p_cat2<- ggplot(df_cat, aes(x = 2, y = n, fill = classe)) +
+  geom_col(width = 1, color = "white") +
+  coord_polar(theta = "y") +
+  xlim(0.5, 2.5) + 
+  theme_void() +
+  scale_fill_brewer(type = "qual", palette = "Set3") +
+  labs(title = "Distribuição de fármacos por classe",
+       fill = "Classe",
+       caption = "Fonte: Dados simulados") +
+  theme(plot.title = element_text(hjust = 0.5, size = 16),
+        plot.caption = element_text(color = "grey50", size = 10),
+        legend.position = "bottom",
+        legend.title = element_text(size = 12),
+        legend.text = element_text(size = 10))
+
+design_cat <- "
+ #22
+ 122
+ #22
+"
+p_cat1 + p_cat2 + plot_layout(design = design_cat)
+```
+
+## Paletas sequenciais: quali (ordinal) ou quantitativa {data-auto-animate="true"}
+
+**Uso:** Para dados que progridem.
+
+**Objetivo:** A cor deve mostrar uma transição suave e perceptível de intensidade.
+
+```{r}
+#| fig-height: 4
+
+paleta_seq <- RColorBrewer::brewer.pal(n = 5, name = "Purples")
+
+p_seq1 <- ggplot() +
+  coord_cartesian(xlim = c(-5, 5), ylim = c(0, 3)) +
+  geom_rect(aes(xmin = -3, xmax = -5, ymin = 0, ymax = 3),
+            fill = paleta_seq[1], alpha = 1) +
+  geom_rect(aes(xmin = -1, xmax = -3, ymin = 0, ymax = 3),
+            fill = paleta_seq[2], alpha = 1) +
+  geom_rect(aes(xmin = -1, xmax = 1, ymin = 0, ymax = 3),
+            fill = paleta_seq[3], alpha = 1) +
+  geom_rect(aes(xmin = 1, xmax = 3, ymin = 0, ymax = 3),
+            fill = paleta_seq[4], alpha = 1) +
+  geom_rect(aes(xmin = 3, xmax = 5, ymin = 0, ymax = 3),
+            fill = paleta_seq[5], alpha = 1) +
+  labs(x = NULL, y = NULL) +
+  theme_void() 
+
+df_seq <- data.frame(
+  dose = paste0(1:5),
+  resposta = sort(runif(5, min = 0.1, max = 100))
+) |> 
+  mutate(dose = as.numeric(dose))
+
+p_seq2 <- ggplot(df_seq, aes(x = dose, y = resposta, fill = resposta)) +
+  geom_col() +
+  theme_classic() +
+  scale_fill_gradientn(colors = paleta_seq) +
+  labs(title = "Resposta de diferentes doses",
+       y = "Resposta (%)",
+       x = "Dose (mg/Kg)",
+       caption = "Fonte: Dados simulados") +
+  theme(plot.title = element_text(hjust = 0.5, size = 16),
+        plot.caption = element_text(color = "grey50", size = 10),
+        legend.position = "none") 
+
+design_seq <- "
+ #22
+ 122
+ #22
+"
+p_seq1 + p_seq2 + plot_layout(design = design_seq)
+
+```
+
+## Paletas divergentes:  quali (ordinal) ou quantitativa
+
+**Uso:** Para dados com um ponto central (como zero).
+
+**Objetivo:** As cores devem destacar desvios positivos e negativos de um ponto central.
+
+```{r}
+#| fig-height: 4
+
+paleta_div <- RColorBrewer::brewer.pal(n = 5, name = "RdYlBu")
+
+p_div1 <- ggplot() +
+  coord_cartesian(xlim = c(-5, 5), ylim = c(0, 3)) +
+  geom_rect(aes(xmin = -3, xmax = -5, ymin = 0, ymax = 3),
+            fill = paleta_div[1], alpha = 1) +
+  geom_rect(aes(xmin = -1, xmax = -3, ymin = 0, ymax = 3),
+            fill = paleta_div[2], alpha = 1) +
+  geom_rect(aes(xmin = -1, xmax = 1, ymin = 0, ymax = 3),
+            fill = paleta_div[3], alpha = 1) +
+  geom_rect(aes(xmin = 1, xmax = 3, ymin = 0, ymax = 3),
+            fill = paleta_div[4], alpha = 1) +
+  geom_rect(aes(xmin = 3, xmax = 5, ymin = 0, ymax = 3),
+            fill = paleta_div[5], alpha = 1) +
+  labs(x = NULL, y = NULL) +
+  theme_void() 
+
+set.seed(123)
+
+df_div <- data.frame(
+  gene = rep(paste0("G", 1:5), 4),
+  log2FC = c(-2.5, -1.2, 0, 1.3, 2.7,
+             3, -3, 0.5, 1, -1,
+             0, 0.1, 0, 0.5, -0.5,
+             2, 1.5, -1, 0.2, -2.2),
+  farmaco = c(rep("A", 5), rep("B", 5), rep("C", 5), rep("D", 5))
+)
+
+p_div2 <- ggplot(df_div, aes(x = farmaco, y = gene, fill = log2FC)) +
+  geom_tile(color = "white", width = 0.8, height = 0.8) +
+  theme_void() +
+  scale_fill_gradientn(colors = paleta_div) +
+  labs(title = "Expressão gênica induzida por fármacos",
+       y = "Gene",
+       x = "Fármaco",
+       caption = "Fonte: Dados simulados") +
+  theme(plot.title = element_text(hjust = 0.5, size = 16),
+        plot.caption = element_text(color = "grey50", size = 10),
+        legend.position = "bottom",
+        legend.title = element_text(size = 12),
+        legend.text = element_text(size = 10),
+        axis.text = element_text(size = 10),
+        axis.title = element_text(size = 11, vjust = 1, hjust = 0))
+
+design_div <- "
+ #22
+ 122
+ #22
+"
+p_div1 + p_div2 + plot_layout(design = design_div)
+```
+
+## Acessibilidade
+
+Cerca de 5% das pessoas possuem alguma forma de daltonismo.
+
+![](img/cones.png){height="150px" style="margin: 10px;" alt="células cones do olho"}
+![](img/normal_vision.png){height="250px" style="margin: 10px;" alt="Gráfico representando visão normal. Fonte: 10.48550/arXiv.2003.03813"}
+
+Pacotes como `viridis` e `cols4all` oferecem paletas seguras.
+
+**Objetivo:** o gráfico ficar legível para todos.\
+
+## Usando cores complementares
+
+```{r}
+#| echo: false
+#| fig-align: center
+#| message: false
+#| warning: false
+#| height: 3
+
+set.seed(123)
+
+ratos <- tibble::tibble(
+  linhagem = rep(c("Wistar", "Sprague-Dawley", "Lewis"), each = 50),
+  peso = c(
+    rnorm(50, mean = 300, sd = 20),  
+    rnorm(50, mean = 280, sd = 25),  
+    rnorm(50, mean = 260, sd = 18)   
+  ),
+  tamanho = c(
+    rnorm(50, mean = 22, sd = 1.5),  
+    rnorm(50, mean = 21, sd = 1.2), 
+    rnorm(50, mean = 20, sd = 1.0)  
+  )
+)
+
+p <- ggplot(ratos, aes(x = peso, y = tamanho, color = linhagem)) +
+  geom_point(size = 3) +
+  labs(caption = "Dados simulados") +
+  theme_bw(base_size = 14) + 
+  theme(
+    plot.caption = element_text(color = "grey50"),
+  )
+
+# Como fica com uma paleta ruim para daltônicos
+p_ruim <- p + scale_color_manual(values = c("#66b033", "#d1ea2c", "#fffe34"))
+
+p_ruim
+```
+
+## Usando cores complementares
+
+```{r}
+#| echo: true
+#| fig-align: center
+#| message: false
+#| warning: false
+#| height: 4
+
+colorblindr::cvd_grid(p_ruim)
+```
+Observe como as cores ficam muito próximas. 
+
+Para variáveis categóricas é desejável cores mais distantes.
+
+## Usando cores do pacote viridis
+
+```{r}
+#| height: 3
+p_bom <- p + scale_color_viridis(discrete = TRUE)
+p_bom 
+```
+
+## Usando cores do pacote viridis
+
+```{r}
+#| echo: true
+#| fig-align: center
+#| message: false
+#| warning: false
+#| height: 4
+colorblindr::cvd_grid(p_bom)
+```
+Revistas científicas podem requerer figuras em preto e branco para publicação impressa.
+
+## Evitar paletas:
+
+```{r}
+#| fig-height: 0.8
+#| fig-cap: "Roxo com azul"
+
+ggplot() +
+  coord_cartesian(xlim = c(-5, 5), ylim = c(0, 5)) +
+  geom_rect(aes(xmin = 0, xmax = -5, ymin = 0, ymax = 5),
+            fill = 'purple', alpha = 1) +
+  geom_rect(aes(xmin = 0, xmax = 5, ymin = 0, ymax = 5),
+            fill = "blue", alpha = 1) +
+  labs(x = NULL, y = NULL) +
+  theme_void() 
+
+```
+
+```{r}
+#| fig-height: 0.8
+#| fig-cap: "Vermelho, verde e marrom"
+ 
+ggplot() +
+  coord_cartesian(xlim = c(-4, 5), ylim = c(0, 5)) +
+  geom_rect(aes(xmin = -1, xmax = -4, ymin = 0, ymax = 5),
+            fill = 'red', alpha = 1) +
+  geom_rect(aes(xmin = -1, xmax = 2, ymin = 0, ymax = 5),
+            fill = 'darkgreen', alpha = 1) +
+  geom_rect(aes(xmin = 2, xmax = 5, ymin = 0, ymax = 5),
+            fill = 'brown', alpha = 1) +
+  labs(x = NULL, y = NULL) +
+  theme_void() 
+```
+
+```{r}
+#| fig-height: .8
+#| fig-cap: "Rosa, turquesa e cinza"
+
+ggplot() +
+  coord_cartesian(xlim = c(-4, 5), ylim = c(0, 5)) +
+  geom_rect(aes(xmin = -1, xmax = -4, ymin = 0, ymax = 5),
+            fill = 'pink', alpha = 1) +
+  geom_rect(aes(xmin = -1, xmax = 2, ymin = 0, ymax = 5),
+            fill = 'turquoise', alpha = 1) +
+  geom_rect(aes(xmin = 2, xmax = 5, ymin = 0, ymax = 5),
+            fill = 'grey', alpha = 1) +
+  labs(x = NULL, y = NULL) +
+  theme_void() 
+```
+
+::: {.slide-footer}
+@Strachnyi2023
+:::
+
+# R para visualização {data-auto-animate="true" transition="zoom"}
+  
+![](img/ggplot2.png){height="200px" style="margin: 10px;" alt="ggplot2 logo"}    
+O `ggplot2` usa a "gramática dos gráficos": construímos o gráfico em camadas.
+
+![](img/tidyplots.png){height="200px" style="margin: 10px;" alt="tidyplots logo"}   
+O `tydyplots` facilita a criação de gráficos prontos para publicação científica.
+
+## ggplot2: gramática dos gráficos {data-auto-animate="true"}
+
+Camadas com `+`
+
+```r
+ggplot(data = dados_farmaco, aes(x = dose, y = efeito, color = grupo)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", se = FALSE) +
+  scale_color_manual(values = c("Placebo" = color2, "Dose baixa" = color1, "Dose alta" = color3)) +
+  labs(
+    x = "Dose do fármaco (mg)",
+    y = "Pressão arterial (mmHg)",
+    color = "Grupo experimental"
+  ) +
+  theme_classic(base_size = 14)
+```
+
+```{r}
+#| echo: false
+#| fig-align: center
+
+set.seed(123)
+
+dados_farmaco <- tibble::tibble(
+  dose = runif(30, 10, 100),  # dose de 10 a 100 mg
+  grupo = rep(c("Placebo", "Dose baixa", "Dose alta"), each = 10),
+  efeito = 100 - 0.4 * dose + rnorm(30, sd = 5)  # redução simulada com ruído
+)
+
+# Ajusta para ordem de grupo (opcional)
+dados_farmaco$grupo <- factor(dados_farmaco$grupo, levels = c("Placebo", "Dose baixa", "Dose alta"))
+
+ggplot(data = dados_farmaco, aes(x = dose, y = efeito, color = grupo)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", se = FALSE) +
+  scale_color_manual(values = c("Placebo" = color2, "Dose baixa" = color1, "Dose alta" = color3)) +
+  labs(
+    x = "Dose do fármaco (mg)",
+    y = "Pressão arterial (mmHg)",
+    color = "Grupo experimental"
+  ) +
+  theme_classic(base_size = 20)
+```
+
+## ggplot2: gramática dos gráficos
+
+Dados com `data = `
+
+Estéticas com `aes()`
+
+```{r}
+#| echo: true
+#| fig-align: center
+#| fig-height: 4
+
+ggplot(data = dados_farmaco, aes(x = dose, y = efeito, color = grupo))
+
+```
+
+## ggplot2: gramática dos gráficos
+
+Geometrias com `geom_*()`
+```{r}
+#| echo: true
+#| fig-align: center
+#| code-line-numbers: 2-3
+
+ggplot(data = dados_farmaco, aes(x = dose, y = efeito, color = grupo)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", se = FALSE) 
+```
+
+## ggplot2: gramática dos gráficos
+
+Escalas com `scale_*()`
+
+```{r}
+#| echo: true
+#| fig-align: center
+#| code-line-numbers: 4-4
+
+ggplot(data = dados_farmaco, aes(x = dose, y = efeito, color = grupo)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", se = FALSE) +
+  scale_color_manual(values = c("Placebo" = color2, "Dose baixa" = color1, "Dose alta" = color3)) 
+```
+
+## ggplot2: gramática dos gráficos
+
+Rótulos com `labs()`
+
+```{r}
+#| echo: true
+#| fig-align: center
+#| code-line-numbers: 5-9
+
+ggplot(data = dados_farmaco, aes(x = dose, y = efeito, color = grupo)) +
+  geom_point(size = 3) +
+  geom_smooth(method = "lm", se = FALSE) +
+  scale_color_manual(values = c("Placebo" = color2, "Dose baixa" = color1, "Dose alta" = color3)) +
+  labs(
+    x = "Dose do fármaco (mg)",
+    y = "Pressão arterial (mmHg)",
+    color = "Grupo experimental"
+  ) 
+```
+
+## ggplot2: gramática dos gráficos
+
+Temas com `theme_*()`
+
+```{r}
+#| echo: true
+#| fig-align: center
+#| code-line-numbers: 10-10
+
+ ggplot(data = dados_farmaco, aes(x = dose, y = efeito, color = grupo)) +
+   geom_point(size = 3) +
+  geom_smooth(method = "lm", se = FALSE) +
+   scale_color_manual(values = c("Placebo" = color2, "Dose baixa" = color1, "Dose alta" = color3)) +
+   labs(
+     x = "Dose do fármaco (mg)",
+     y = "Pressão arterial (mmHg)",
+     color = "Grupo experimental"
+   ) +
+  theme_classic(base_size = 20)
+```
+
+## ggplot2: gramática dos gráficos
+Muito controle para personalizar cada aspecto do gráfico.
+
+::: {.r-stack}
+
+
+::: {.fragment}
+![](img/ggplot_ex5.png){fig-align="center" height="400"}
+:::
+
+::: {.fragment}
+![](img/ggplot_ex2.png){fig-align="center" height="400"}
+:::
+
+::: {.fragment}
+![](img/ggplot_ex1.png){height="400" fig-align="center" alt="Exemplo de gráfico ggplot2 com várias camadas"}
+:::
+
+::: {.fragment}
+![](img/ggplot_ex3.png){fig-align="center" height="400" }
+:::
+
+::: {.fragment}
+![](img/ggplot_ex4.png){fig-align="center" height="400" }
+:::
+
+### O céu é o limite!
+
+:::
+
+::: {.slide-footer}
+Triches et al. (não publicado); @Bolzan2025; @Martins2022 
+:::
+
+## tidyplots
+
+Uma coleção de funções mais diretas e simples para criar gráficos para publicação científica. Usa `ggplot2` na sua base.
+
+![](img/tidyplots_ex.png){height="430px" fig-align='center' style="margin: 10px;" alt="tidyplots examples"}
+
+## tidyplots {auto-animate="true"}
+
+Camadas conectadas com pipe `|>` em vez de `+`.
+```{r}
+set.seed(123)
+
+study <- data.frame(
+  treatment = rep(c("Tratamento A", "Tratamento B"), each = 30),
+  score = c(
+    rnorm(30, mean = 60, sd = 12),     # Tratamento A
+    rnorm(30, mean = 30, sd = 15)      # Tratamento B
+  )
+)
+```
+
+::: {.columns height="100%"}
+
+::: {.column width="50%"}
+```{r}
+#| echo: true
+#| fig_align: center
+
+study |> 
+  tidyplot(x = treatment, y = score, color = treatment) |> 
+  add_violin(draw_quantiles = c(0.25, 0.5, 0.75)) |> 
+  add_data_points_beeswarm() |> 
+  add_test_asterisks(hide_info = TRUE) 
+```
+:::
+
+::: {.column width="50%"}
+```{r}
+#| echo: true
+#| fig_align: center
+
+study |> 
+  tidyplot(x = treatment, y = score, color = treatment) |> 
+  add_boxplot() |> 
+  add_data_points_beeswarm() |> 
+   add_test_asterisks(hide_info = TRUE)
+```
+:::
+
+:::
+
+## tidyplots {auto-animate="true" transition="zoom"}
+
+```{r}
+#| fig_align: center
+
+study |> 
+  tidyplot(x = treatment, y = score, color = treatment) |> 
+  add_violin(draw_quantiles = c(0.25, 0.5, 0.75)) |> 
+  add_data_points_beeswarm() |> 
+  add_test_asterisks(hide_info = TRUE)
+```
+
+# *O importante é o que importa!*
+
+A maneira de apresentar os dados pode mudar completamente sua interpretação e alcance.
+
+Boas práticas = **comunicação científica eficaz, clara e ética**.
+
+# Apoio {style="text-align: center;"}
+<br>
+![](img/labnec.png){height="100px" style="margin: 10px;" alt="LabNeC"}
+![](img/logo_ppgfmc.png){height="100px" style="margin: 10px;" alt="PPGFMC"} 
+![](img/ufsc.png){height="100px" style="margin: 10px;" alt="UFSC"}
+<br>
+![](img/capes.png){height="100px" style="margin: 10px;" alt="CAPES"} 
+![](img/cnpq.png){height="60px" style="margin: 10px;" alt="CNPq"} 
+![](img/avhf.png){height="100px" style="margin: 10px;" alt="AVHF"}
+<br>
+![](img/camaradesbr.png){height="60px" style="margin: 10px;" alt="camaradesBR"} 
+![](img/rladies_color.png){height="80px" style="margin: 10px;" alt="R-Ladies"}
+
+# Perguntas? {background-color="#a5cbab"}
+
+# Atividade prática
+
+## Desenho experimental
+
+::: {#fig-exp layout-ncol=2}
+
+![Mosca da fruta](img/drosophila.jpg){fig-align="center" height="60%" alt="Mosca da fruta"}
+
+![Desenho experimental - Eckert et al. (não publicado)](img/desenho_experimental.jpeg){fig-align="center" height="80%" weight="80%"  alt="Desenho experimental"}
+
+:::
+
+## ✨ Construa um gráfico com os seguintes dados ✨ 
+
+{{< embed ../graficos.qmd#tab-dados >}}
+
+::: {.slide-footer}
+Eckert et al. (não publicado)
+:::
+
+## Instruções
+
+No arquivo `graficos.qmd`:
+
+1. Importar os dados (Excel/CSV)\
+2. Escolher o tipo de gráfico apropriado\
+3. Escolher uma paleta de cores acessível e informativa\
+4. Aplicar boas práticas (eixos, títulos, etc.)\
+5. Apresentar aos colegas\
+
+## Referências e extras
+
+[ggplot2](https://ggplot2.tidyverse.org/)
+
+[tidyplots](https://tidyplots.org/)
+
+[data-to-viz](https://www.data-to-viz.com/)

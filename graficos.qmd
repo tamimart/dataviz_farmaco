@@ -1,0 +1,214 @@
+---
+title: "Oficina CIF"
+subtitle: "Visualização de dados em Farmacologia: tipos de gráficos, como plotá-los e boas práticas para publicações"
+author: "Tamires Martins"
+format:
+  pdf:
+    header-includes:
+      - \usepackage{pdflscape}
+    title: |
+      Oficina CIF\
+      ![](slides/img/favicon.png){width=2cm} 
+    toc: true
+    lang: pt-BR
+    number-sections: true
+    keep-tex: false
+    fig-cap-location: top
+    code-line-numbers: true
+    code-block-bg: true
+mainfont: Arial
+output:
+  pdf_document:
+    latex_engine: xelatex
+execute:
+  echo: true       # mostrar código
+  warning: false   # ocultar warnings
+  message: false   # ocultar mensagens 
+  error: false     # ocultar erros 
+---
+
+# Introdução
+
+Nesta prática, vamos explorar como visualizar dados da Farmacologia em R. Para isso, também vamos aprender passos básicos com a linguagem.
+
+# Passos básicos com R
+
+## Como se ajudar
+Abrir a documentação de uma função é essencial para entender como ela funciona e quais parâmetros você pode usar. Existem várias maneiras de acessar a documentação no R:
+```{r}
+?mean
+# ou
+help(mean)
+# ou clicar no nome da função apertar F1
+```
+
+# Como rodar o código?
+Coloque o cursor na linha que deseja rodar e aperte "Run" ou "Ctrl" + "Enter". O resultado irá aparecer no console, faça o teste: 
+```{r}
+print("Olá, mundo!")  # Imprimindo uma mensagem no console
+1 + 1
+```
+
+## A ordem importa (rode o código na sequência):
+```{r}
+# tire a anotação da frente e tente rodar:
+# numero 
+
+# Atribuindo um valor a um objeto
+numero <- 10
+
+numero
+```
+
+Para acessar a classe de um objeto:
+```{r}
+class(numero)
+```
+
+Os pacotes são conjuntos de funções. Para instalar um pacote, use `install.packages("nome_do_pacote")`. Para carregar um pacote já instalado, use `library(nome_do_pacote)`.
+Algumas funções são da base:
+```{r}
+
+# mean() calcula a média
+
+# A média de um vetor
+meu_vetor <- c(1, 2, 3, 4, 5)
+mean(meu_vetor)
+
+```
+
+# Os dados
+
+Os dados que iremos trabalhar são simulações baseadas em dados reais (Eckert et al. (não publicado)). O experimento consiste em avaliar comportamentos das moscas-das-frutas (*Drosophila melanogaster*) machos e fêmeas, em diferentes condições de tratamento. 
+
+::: {#fig-exp layout-ncol=2}
+
+![Mosca da fruta](slides/img/drosophila.jpg){fig-align="center" alt="Mosca da fruta"}
+
+![Desenho experimental](slides/img/desenho_experimental.jpeg){ fig-align="center" height="100%" weight="80%" alt="Desenho experimental"}
+
+Experimento com *Drosophila melanogaster* 
+:::
+
+## Carregando pacotes
+
+```{r}
+# seguido de texto são anotações, não código.
+
+# Instale se ainda não tiver
+# install.packages("ggplot2")
+# install.packages("tidyplots")
+# install.packages("patchwork")
+
+library(ggplot2)
+library(tidyplots)
+library(patchwork)
+```
+
+## Importando os dados
+
+Os dados estão disponíveis no arquivo `dados_moscas.xlsx`, que deve estar na mesma pasta do arquivo `.qmd`.
+
+```{r}
+#| label: tab-dados
+
+# Importar os dados do arquivo Excel
+dados <- readxl::read_excel("dados_moscas.xlsx")
+
+dados
+```
+
+## Visualizando os dados
+
+```{r}
+dplyr::glimpse(dados) 
+```
+
+
+```{=latex}
+\begin{landscape}
+```
+
+```{r}
+skimr::skim(dados)
+```
+
+```{=latex}
+\end{landscape}
+```
+
+# Os gráficos
+
+## Gráfico box plot simples usando ggplot2
+```{r}
+#| label: quem-caminha-mais_ggplot2
+#| width: 4.5
+#| fig-align: center
+
+ggplot(dados, aes(x = sexo, y = total_distance_travelled_m)) +
+  geom_boxplot() +
+  theme_minimal()
+
+# dando nome ao objeto, adicionando mais uma variável categórica, e mudando o tema:
+grafico <- ggplot(
+  dados, 
+  aes(x = sexo, y = total_distance_travelled_m, fill = tratamento)) +
+  geom_boxplot() +
+  labs(
+    title= "Quem caminha mais? machos ou fêmeas? com ggplot2",
+    x = "Grupos",
+    y = "Distância percorrida (m)") +
+  theme_classic()
+
+grafico
+```
+
+Depois de satisfeitos, podemos salvar:
+```{r}
+ggsave(
+  plot = grafico, # o default é o ultimo gráfico gerado
+  filename = "ggplot2.png", 
+  path = "figuras",
+  dpi = 600 # o default é 300
+  )
+```
+
+## Gráfico box plot simples usando tidyplots
+```{r}
+#| label: quem-caminha-mais_tidyplots
+#| width: 6
+#| fig-align: center
+
+grafico <- tidyplot(
+    dados,
+    x = sexo,
+    y = total_distance_travelled_m,
+    fill = tratamento
+  ) |> 
+  add_boxplot() |> 
+  adjust_title("Quem caminha mais? machos ou fêmeas? com tidyplots") |>
+  adjust_x_axis_title("Grupos") |>
+  adjust_y_axis_title("Distância percorrida (m)") |>
+  theme_tidyplot() |>  # tema padrão do tidyplots
+  save_plot("figuras/tidyplot.png")
+
+# ou salvando com ggplot2
+ggsave(
+  plot = grafico, 
+  filename = "tidyplots.png", 
+  path = "figuras",
+  dpi = 600 
+)
+```
+
+# Agora é a sua vez:
+
+1. Faça uma pergunta sobre os dados.
+2. Crie um gráfico que responda a essa pergunta.
+3. Personalize o gráfico com títulos, rótulos e cores.
+4. Salve o gráfico.
+
+```{r}
+#| label: Meu primeiro gráfico
+# [ADICIONE O CÓDIGO AQUI]
+```

@@ -1,0 +1,165 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+.opens-sans {
+  font-family: "Balsamiq Sans", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.pt-serif-regular {
+  font-family: "PT Serif", serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+/*-- scss:defaults --*/
+
+$link-color: #a5cbab;
+$backgroundColor: #ffffff;
+$mainColor: #2a2a2a;
+$accentColor:  #daa641; 
+$headingColor: #21908C;
+$codeBg: #a5cbab;
+$borderRadius: 10px;
+$fontFamilyMain: "Inter", "Helvetica Neue", sans-serif;
+$fontFamilyMono: "Fira Code", monospace;
+
+/*-- scss:rules --*/
+.reveal {
+  font-family: $fontFamilyMain;
+  font-size: 1.6rem; 
+  color: $mainColor;
+  background-color: $backgroundColor;
+}
+
+.reveal h1,
+.reveal h2,
+.reveal h3 {
+  color: $headingColor;
+  font-weight: 700;
+}
+
+.reveal h1 {
+  font-size: 3rem; 
+  padding-bottom: 0.3em;
+  margin-bottom: 0.5em;
+}
+
+.reveal h2 {
+  font-size: 2.4rem;
+  margin-top: 1em;
+}
+
+.reveal h3 {
+  font-size: 2rem;
+  color: $accentColor;
+}
+
+.reveal p {
+  font-size: 1.6rem;
+  margin: 1em 0;
+}
+
+.reveal li {
+  font-size: 1.6rem;
+  margin-bottom: 0.5em;
+}
+
+.reveal a {
+  color: $accentColor;
+  text-decoration: underline;
+}
+
+.reveal code {
+  background-color: $codeBg;
+  color: #333;
+  font-family: $fontFamilyMono;
+  border-radius: $borderRadius;
+  padding: 0.15em 0.4em;
+  font-size: 1.5rem;
+}
+
+.reveal pre code {
+  display: block;
+  padding: 1em;
+  overflow-x: auto;
+  font-size: 1.6rem;
+}
+
+.reveal ul,
+.reveal ol {
+  padding-left: 1.5em;
+}
+
+.reveal table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+  font-size: 1.6rem;
+}
+
+.reveal th,
+.reveal td {
+  border: 1px solid #ccc;
+  padding: 0.5em;
+  text-align: left;
+}
+
+.reveal .box {
+  border-left: 5px solid $accentColor;
+  background: #f0fdfa;
+  padding: 1em;
+  border-radius: $borderRadius;
+  margin: 1em 0;
+}
+
+.reveal .box strong {
+  color: $headingColor;
+}
+
+.reveal .column-left,
+.reveal .column-right {
+  display: inline-block;
+  vertical-align: top;
+  width: 48%;
+  margin: 1%;
+}
+
+.reveal .slide-number {
+  color: $accentColor;
+  font-weight: 500;
+}
+
+.reveal section {
+  transition: all 0.5s ease-in-out;
+}
+
+.reveal aside {
+  position: relative !important; 
+  float: none !important;
+  display: block;
+  font-size: 1.3rem;
+  margin-top: 2em;
+  padding: 0.8em 1em;
+  border-left: 4px solid $accentColor;
+  background-color: #f9f9f9;
+  color: #444;
+  border-radius: $borderRadius;
+  box-shadow: 0 1px 5px rgba(0,0,0,0.05);
+}
+
+.figure-caption {
+  text-align: center;
+}
+
+.slide-footer {
+  font-weight: 200;
+  color: grey;
+}
+
+.csl-entry {
+  font-size: 1.4rem;
+  line-height: 1.5;
+  margin: 0.5em 0;
+  color: grey50;
+}
