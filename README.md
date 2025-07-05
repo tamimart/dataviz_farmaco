@@ -9,3 +9,4 @@ Este repositório reúne os materiais de uma oficina introdutória sobre visuali
 ├── dados_moscas.xlsx      # Conjunto de dados utilizado nos exemplos
 └── dataviz_farmaco.Rproj  # Projeto RStudio
 ```
+Se preferir, faça a cópia do [projeto no posit.cloud](https://posit.cloud/content/10571957).
