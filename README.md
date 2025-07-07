@@ -1,4 +1,4 @@
-Oficina: Visualização de dados em Farmacologia: tipos de gráficos, como plotá-los e boas práticas para publicações 
+Oficina: Visualização de dados em Farmacologia: tipos de gráficos, como plotá-los e boas práticas para publicações\
 Evento: [XXI Curso de Inverno de Farmacologia da UFSC](https://cursodeinvernofarmacologia.ufsc.br/)
 
 Este repositório reúne os materiais de uma oficina introdutória sobre visualização de dados no contexto da farmacologia. O projeto inclui:
