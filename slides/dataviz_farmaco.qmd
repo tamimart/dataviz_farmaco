@@ -1,5 +1,5 @@
 ---
-title: "Visualização de Dados em Farmacologia"
+title: "Visualização de dados em Farmacologia"
 subtitle: "Tipos de gráficos, como plotá-los e boas práticas para publicações"
 author: "Ma. Tamires Martins"
 date-format: long
@@ -64,7 +64,7 @@ color3 <- "#21908C"
 # Objetivos da oficina
 
 1.  Entender o papel dos gráficos em farmacologia
-2.  Explorar tipos de gráficos: dose-resposta, respostas de grupos etc.
+2.  Explorar tipos de gráficos: dose-resposta, respostas de grupos, etc.
 3.  Revisar conceitos estatísticos básicos 
 4.  Aplicar boas práticas gráficas para publicação
 5.  Compreender a teoria das cores e acessibilidade
@@ -251,7 +251,7 @@ print(df, n = 30)
 
 # Tipos de gráficos em farmacologia
 
-# Jogo dos erros! Estão preparados? 🕵🏽
+# Jogo dos erros! 🕵🏽
 
 ## Don't!
 
@@ -394,7 +394,7 @@ ggplot(mort_plot, aes(x = tempo_obito_horas, y = sobreviventes, color = grupo)) 
   labs(title = NULL,
        x = "Tempo (horas)",
        y = "Sobreviventes",
-       caption = "Fonte: Dados simulados a partir de Marinho et al. (não publicado)") +
+       caption = "Fonte: Dados simulados a partir de Santos et al. (não publicado).") +
   theme_classic(base_size = 20) +
   theme(plot.caption = element_text(size = 10, hjust = 1, color = "grey50"))
 
@@ -607,13 +607,13 @@ Devem ser usadas para **explicar o que** cada cor, forma ou tamanho **representa
 data <- tibble(
   x = 1:5,
   y = 1:5,
-  grupo = c("Principal", "Principal", "Destaque", "Principal", "Principal")
+  grupo = c("Padrão", "Padrão", "Destaque", "Padrão", "Padrão")
 )
 
 ggplot(data, aes(x = x, y = y, fill = grupo)) +
   geom_point(shape = 21, size = 6, color = "white") +
   scale_fill_manual(
-    values = c("Principal" = "grey70", "Destaque" = color2)
+    values = c("Padrão" = "grey70", "Destaque" = color2)
   ) +
   labs(
     title = "Você começa a ler aqui",
@@ -1507,4 +1507,6 @@ No arquivo `graficos.qmd`:
 
 [tidyplots](https://tidyplots.org/)
 
-[data-to-viz](https://www.data-to-viz.com/)
+[Data to Viz - tipos de gráficos](https://www.data-to-viz.com/)
+
+[Material design - paleta de cores](https://m2.material.io/inline-tools/color/)
