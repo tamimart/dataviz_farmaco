@@ -1,4 +1,4 @@
 - source: dataviz_farmaco.qmd
   quarto-pub:
     - id: 6ae12c31-6810-44d5-8e51-3f405180122f
-      url: https://tamimart.quarto.pub/dataviz_farmaco
+      url: https://tamimart.quarto.pub/dataviz-farmaco
