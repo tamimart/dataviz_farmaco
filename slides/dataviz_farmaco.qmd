@@ -72,7 +72,7 @@ color3 <- "#21908C"
 
 # Materiais
 
--   [Slides <](https://tamimart.quarto.pub/dataviz_farmaco/)
+-   [Slides <](https://tamimart.quarto.pub/dataviz-farmaco/)
 -   [Projeto no GitHub](https://github.com/tamimart/dataviz_farmaco)
 -   *Cheatsheets* impressos
 

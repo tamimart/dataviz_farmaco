@@ -1,7 +1,9 @@
 ---
 title: "Oficina CIF"
 subtitle: "Visualização de dados em Farmacologia: tipos de gráficos, como plotá-los e boas práticas para publicações"
-author: "Tamires Martins"
+author: 
+  - "Tamires Martins"
+  - "Aluna(o)"
 format:
   pdf:
     header-includes:
@@ -16,6 +18,11 @@ format:
     fig-cap-location: top
     code-line-numbers: true
     code-block-bg: true
+margin-left: 2cm
+margin-right: 2cm
+margin-top: 2cm
+margin-bottom: 2cm
+fontsize: 11pt
 mainfont: Arial
 output:
   pdf_document:
@@ -43,7 +50,7 @@ help(mean)
 ```
 
 # Como rodar o código?
-Coloque o cursor na linha que deseja rodar e aperte "Run" ou "Ctrl" + "Enter". O resultado irá aparecer no console, faça o teste: 
+Coloque o cursor na linha que deseja rodar e aperte "Run" ou "Ctrl + Enter". O resultado irá aparecer no console, faça o teste: 
 ```{r}
 print("Olá, mundo!")  # Imprimindo uma mensagem no console
 1 + 1
