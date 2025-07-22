@@ -2,8 +2,8 @@
 title: "Oficina CIF"
 subtitle: "Visualização de dados em Farmacologia: tipos de gráficos, como plotá-los e boas práticas para publicações"
 author: 
-  - "Tamires Martins"
   - "Aluna(o)"
+  - "Tamires Martins"
 format:
   pdf:
     header-includes:
@@ -121,6 +121,15 @@ Os dados estão disponíveis no arquivo `dados_moscas.xlsx`, que deve estar na m
 
 # Importar os dados do arquivo Excel
 dados <- readxl::read_excel("dados_moscas.xlsx")
+
+# Exemplo de transformação na planilha
+dados <- dados |>
+  dplyr::mutate(
+    pindex = (time_in_the_sacarose_zone_s /
+                (time_in_the_sacarose_zone_s + time_in_the_agar_zone_s)) -
+      (time_in_the_agar_zone_s /
+         (time_in_the_sacarose_zone_s + time_in_the_agar_zone_s))
+  )
 
 dados
 
