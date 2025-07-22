@@ -122,7 +122,6 @@ Os dados estão disponíveis no arquivo `dados_moscas.xlsx`, que deve estar na m
 # Importar os dados do arquivo Excel
 dados <- readxl::read_excel("dados_moscas.xlsx")
 
-dados
 ```
 
 ## Visualizando os dados
