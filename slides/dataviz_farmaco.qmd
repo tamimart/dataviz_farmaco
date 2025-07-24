@@ -168,7 +168,7 @@ ggplot2::ggplot(exemplo_dados, aes(x = dose, y = resposta)) +
   scale_x_log10() + 
   labs(
     x = "Dose do fármaco (<b>variável independente</b>)",
-    y = "Resposta biológica \n(<b>variável dependente</b>)"
+    y = "Resposta biológica <br>(<b>variável dependente</b>)"
   ) +
   theme_classic(base_size = 20) +
     theme(
