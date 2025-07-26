@@ -488,7 +488,7 @@ ggplot(dados_resumo, aes(x = grupo, y = media, fill = grupo)) +
 
 :::
 
-## Boxplot para comparação entre médias/medianas de grupos grupos
+## Boxplot para comparação entre médias/medianas de grupos
 
 Compara a **distribuição** de uma variável entre diferentes grupos.
 
@@ -1235,7 +1235,7 @@ ggplot(data = dados_farmaco, aes(x = dose, y = efeito, color = grupo)) +
   geom_smooth(method = "lm", se = FALSE) +
   scale_color_manual(values = c("Placebo" = color2, "Dose baixa" = color1, "Dose alta" = color3)) +
   labs(
-    x = "Dose do fármaco (mg)",
+    x = "Dose do fármaco (mg/kg)",
     y = "Pressão arterial (mmHg)",
     color = "Grupo experimental"
   ) +
@@ -1262,7 +1262,7 @@ ggplot(data = dados_farmaco, aes(x = dose, y = efeito, color = grupo)) +
   geom_smooth(method = "lm", se = FALSE) +
   scale_color_manual(values = c("Placebo" = color2, "Dose baixa" = color1, "Dose alta" = color3)) +
   labs(
-    x = "Dose do fármaco (mg)",
+    x = "Dose do fármaco (mg/kg)",
     y = "Pressão arterial (mmHg)",
     color = "Grupo experimental"
   ) +
@@ -1326,7 +1326,7 @@ ggplot(data = dados_farmaco, aes(x = dose, y = efeito, color = grupo)) +
   geom_smooth(method = "lm", se = FALSE) +
   scale_color_manual(values = c("Placebo" = color2, "Dose baixa" = color1, "Dose alta" = color3)) +
   labs(
-    x = "Dose do fármaco (mg)",
+    x = "Dose do fármaco (mg/kg)",
     y = "Pressão arterial (mmHg)",
     color = "Grupo experimental"
   ) 
@@ -1346,7 +1346,7 @@ Temas com `theme_*()`
   geom_smooth(method = "lm", se = FALSE) +
    scale_color_manual(values = c("Placebo" = color2, "Dose baixa" = color1, "Dose alta" = color3)) +
    labs(
-     x = "Dose do fármaco (mg)",
+     x = "Dose do fármaco (mg/kg)",
      y = "Pressão arterial (mmHg)",
      color = "Grupo experimental"
    ) +
